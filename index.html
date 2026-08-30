@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clemence Boutique — Lookbook</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bone: '#EDE7DB',
+          ink: '#211C16',
+          cognac: '#7C4B31',
+          taupe: '#A79C87',
+          hairline: '#D6CDB9',
+        },
+        fontFamily: {
+          display: ['Fraunces', 'serif'],
+          sans: ['Inter', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
+<style>
+  /* Signature device: a dashed "saddle-stitch" line, used deliberately as the
+     recurring structural motif (tab underlines, dividers, card borders) —
+     a direct nod to how leather goods are actually constructed. */
+  .stitch {
+    background-image: repeating-linear-gradient(to right, #7C4B31 0, #7C4B31 5px, transparent 5px, transparent 10px);
+    background-size: 10px 1.5px;
+    background-repeat: repeat-x;
+    background-position: bottom;
+  }
+  .stitch-v {
+    background-image: repeating-linear-gradient(to bottom, #D6CDB9 0, #D6CDB9 5px, transparent 5px, transparent 10px);
+    background-size: 1.5px 10px;
+    background-repeat: repeat-y;
+  }
+  .tracked-label {
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+  }
+  .placeholder-swatch {
+    background-image: repeating-linear-gradient(45deg, #E3DBC9 0, #E3DBC9 1px, transparent 1px, transparent 12px);
+    background-color: #E9E2D2;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .card-enter { animation: fadeUp 0.5s ease both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  }
+  :focus-visible {
+    outline: 2px solid #7C4B31;
+    outline-offset: 2px;
+  }
+  #lightbox-img { transition: opacity 0.2s ease; }
+</style>
+</head>
+<body class="bg-bone text-ink font-sans antialiased">
+
+  <!-- ============================================================
+       EDIT THIS BLOCK — brand contact details used by Inquire buttons
+       ============================================================ -->
+  <script>
+    const CONTACT = {
+      whatsappNumber: "61400000000",      // <-- replace with real WhatsApp number, country code, no + or spaces
+      instagramHandle: "clemenceboutique", // <-- replace with real Instagram handle (no @)
+    };
+  </script>
+
+  <!-- Header -->
+  <header class="border-b border-hairline sticky top-0 bg-bone/95 backdrop-blur z-30">
+    <div class="max-w-6xl mx-auto px-6 md:px-10">
+      <div class="flex items-center justify-between py-6">
+        <h1 class="font-display text-2xl md:text-3xl tracking-wide">Clemence Boutique</h1>
+        <p class="hidden md:block tracked-label text-taupe">Leather Goods &amp; Footwear Lookbook</p>
+      </div>
+
+      <!-- Filters + Search -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4">
+        <nav id="filter-tabs" class="flex flex-wrap gap-x-6 gap-y-2 tracked-label"></nav>
+        <div class="relative w-full md:w-64">
+          <input
+            id="search-input"
+            type="text"
+            placeholder="Search products…"
+            class="w-full bg-transparent border-0 border-b border-hairline focus:border-ink py-1.5 pr-7 text-sm placeholder:text-taupe focus:outline-none transition-colors"
+          />
+          <svg class="w-4 h-4 absolute right-1 top-2 text-taupe pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Jump-to-collection nav — only populated when >1 section is visible -->
+      <div id="jump-nav" class="hidden flex-wrap gap-x-5 gap-y-1 pb-4 text-xs text-taupe"></div>
+    </div>
+  </header>
+
+  <!-- Grid: rendered as one or more collection sections -->
+  <main class="max-w-6xl mx-auto px-6 md:px-10 py-10">
+    <div id="product-grid" class="space-y-16"></div>
+    <p id="empty-state" class="hidden text-center text-taupe py-24 tracked-label"></p>
+  </main>
+
+  <footer class="border-t border-hairline mt-10">
+    <div class="max-w-6xl mx-auto px-6 md:px-10 py-8 flex flex-col md:flex-row justify-between gap-2 tracked-label text-taupe">
+      <span>Clemence Boutique</span>
+      <span>Sydney, Australia</span>
+    </div>
+  </footer>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="fixed inset-0 bg-ink/95 z-50 hidden items-center justify-center p-4 md:p-10">
+    <button id="lightbox-close" aria-label="Close" class="absolute top-5 right-5 md:top-8 md:right-8 text-bone/80 hover:text-bone text-3xl leading-none w-10 h-10 flex items-center justify-center">&times;</button>
+    <button id="lightbox-prev" aria-label="Previous image" class="absolute left-2 md:left-6 text-bone/70 hover:text-bone text-4xl w-12 h-12 flex items-center justify-center">&#8249;</button>
+    <button id="lightbox-next" aria-label="Next image" class="absolute right-2 md:right-6 text-bone/70 hover:text-bone text-4xl w-12 h-12 flex items-center justify-center">&#8250;</button>
+
+    <div class="max-w-3xl w-full">
+      <div class="aspect-[4/5] w-full max-h-[75vh] mx-auto flex items-center justify-center overflow-hidden rounded-sm">
+        <img id="lightbox-img" src="" alt="" class="max-h-[75vh] max-w-full object-contain hidden" />
+        <div id="lightbox-placeholder" class="placeholder-swatch w-full h-full flex items-center justify-center hidden">
+          <span class="tracked-label text-cognac/70">Photo Placeholder</span>
+        </div>
+      </div>
+      <p id="lightbox-caption" class="text-bone tracked-label text-center mt-4"></p>
+    </div>
+  </div>
+
+<script>
+/* ============================================================
+   PRODUCT DATA — replace this array with real catalogue data.
+   Every field below is a clearly marked placeholder. Structure
+   matches the pipeline's manifest.json — you can generate this
+   array directly from that file once real photos/data exist.
+
+   `collection` groups products into their own labeled section
+   within a category (e.g. multiple bag collections). If you
+   omit `collection`, it defaults to the category name, so a
+   category with only one grouping (e.g. Accessories) doesn't
+   need one set on every item.
+
+   images: [] (empty array) renders a labeled placeholder swatch
+   instead of a broken image — safe to leave empty until you have
+   real photos hosted somewhere.
+   ============================================================ */
+const PRODUCTS = [
+  // ---- Bags: Structured Totes collection ----
+  {
+    sku: "sku_placeholder_01",
+    name: "Product Name Placeholder — Structured Tote",
+    category: "Bags",
+    collection: "Structured Totes",
+    material: "Material Placeholder (e.g. Full-grain leather)",
+    sizes: ["One Size"],
+    price: "Price Placeholder",
+    description: "Short description placeholder — silhouette, construction detail, and finish notes go here.",
+    images: [],
+  },
+  {
+    sku: "sku_placeholder_02",
+    name: "Product Name Placeholder — Boxy Tote",
+    category: "Bags",
+    collection: "Structured Totes",
+    material: "Material Placeholder",
+    sizes: ["One Size"],
+    price: "Price Placeholder",
+    description: "Short description placeholder — silhouette, construction detail, and finish notes go here.",
+    images: [],
+  },
+  // ---- Bags: Soft Crossbody collection ----
+  {
+    sku: "sku_placeholder_03",
+    name: "Product Name Placeholder — Soft Crossbody",
+    category: "Bags",
+    collection: "Soft Crossbody",
+    material: "Material Placeholder",
+    sizes: ["One Size"],
+    price: "Price Placeholder",
+    description: "Short description placeholder — silhouette, construction detail, and finish notes go here.",
+    images: [],
+  },
+  {
+    sku: "sku_placeholder_04",
+    name: "Product Name Placeholder — Mini Crossbody",
+    category: "Bags",
+    collection: "Soft Crossbody",
+    material: "Material Placeholder",
+    sizes: ["One Size"],
+    price: "Price Placeholder",
+    description: "Short description placeholder — silhouette, construction detail, and finish notes go here.",
+    images: [],
+  },
+  // ---- Bags: Evening Clutches collection ----
+  {
+    sku: "sku_placeholder_05",
+    name: "Product Name Placeholder — Evening Clutch",
+    category: "Bags",
+    collection: "Evening Clutches",
+    material: "Material Placeholder",
+    sizes: ["One Size"],
+    price: "Price Placeholder",
+    description: "Short description placeholder — silhouette, construction detail, and finish notes go here.",
+    images: [],
+  },
+  // ---- Footwear (no collection set — defaults to category name) ----
+  {
+    sku: "sku_placeholder_06",
+    name: "Product Name Placeholder — Loafer",
+    category: "Footwear",
+    material: "Material Placeholder (e.g. Vegetable-tanned leather)",
+    sizes: ["EU 37", "EU 38", "EU 39", "EU 40"],
+    price: "Price Placeholder",
+    description: "Short description placeholder — silhouette, construction detail, and finish notes go here.",
+    images: [],
+  },
+  {
+    sku: "sku_placeholder_07",
+    name: "Product Name Placeholder — Derby Shoe",
+    category: "Footwear",
+    material: "Material Placeholder",
+    sizes: ["EU 40", "EU 41", "EU 42", "EU 43"],
+    price: "Price Placeholder",
+    description: "Short description placeholder — silhouette, construction detail, and finish notes go here.",
+    images: [],
+  },
+  // ---- Accessories (no collection set — defaults to category name) ----
+  {
+    sku: "sku_placeholder_08",
+    name: "Product Name Placeholder — Belt",
+    category: "Accessories",
+    material: "Material Placeholder",
+    sizes: ["S", "M", "L"],
+    price: "Price Placeholder",
+    description: "Short description placeholder — silhouette, construction detail, and finish notes go here.",
+    images: [],
+  },
+  {
+    sku: "sku_placeholder_09",
+    name: "Product Name Placeholder — Card Holder",
+    category: "Accessories",
+    material: "Material Placeholder",
+    sizes: ["One Size"],
+    price: "Price Placeholder",
+    description: "Short description placeholder — silhouette, construction detail, and finish notes go here.",
+    images: [],
+  },
+];
+
+/* ============================================================
+   RENDERING + INTERACTION LOGIC — no edits needed below this
+   line to add products; just extend the PRODUCTS array above.
+   ============================================================ */
+
+const grid = document.getElementById('product-grid');
+const tabsNav = document.getElementById('filter-tabs');
+const jumpNav = document.getElementById('jump-nav');
+const searchInput = document.getElementById('search-input');
+const emptyState = document.getElementById('empty-state');
+
+let activeCategory = 'All';
+let activeSearch = '';
+
+// Normalize once: every product gets a resolved `collection`, defaulting
+// to its category name if none was set in the data above.
+PRODUCTS.forEach(p => { p._collection = p.collection || p.category; });
+
+function categories() {
+  return ['All', ...Array.from(new Set(PRODUCTS.map(p => p.category)))];
+}
+
+function buildTabs() {
+  tabsNav.innerHTML = '';
+  categories().forEach(cat => {
+    const btn = document.createElement('button');
+    btn.textContent = cat;
+    btn.dataset.cat = cat;
+    btn.className = tabClasses(cat === activeCategory);
+    btn.addEventListener('click', () => {
+      activeCategory = cat;
+      buildTabs();
+      renderGrid();
+    });
+    tabsNav.appendChild(btn);
+  });
+}
+
+function tabClasses(isActive) {
+  return isActive
+    ? 'stitch pb-1 text-ink'
+    : 'pb-1 text-taupe hover:text-ink transition-colors';
+}
+
+function matchesFilters(p) {
+  const inCategory = activeCategory === 'All' || p.category === activeCategory;
+  const q = activeSearch.trim().toLowerCase();
+  const inSearch = !q ||
+    p.name.toLowerCase().includes(q) ||
+    p.category.toLowerCase().includes(q) ||
+    p._collection.toLowerCase().includes(q) ||
+    p.material.toLowerCase().includes(q);
+  return inCategory && inSearch;
+}
+
+function slugify(text) {
+  return 'section-' + text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+// Group filtered products into an ordered list of { collection, items }
+// sections, preserving first-appearance order from the PRODUCTS array.
+function groupByCollection(items) {
+  const order = [];
+  const map = new Map();
+  items.forEach(p => {
+    if (!map.has(p._collection)) {
+      map.set(p._collection, []);
+      order.push(p._collection);
+    }
+    map.get(p._collection).push(p);
+  });
+  return order.map(name => ({ collection: name, items: map.get(name) }));
+}
+
+function whatsappLink(product) {
+  const msg = encodeURIComponent(`Hi! I'm interested in the ${product.name} (${product.sku}) from Clemence Boutique.`);
+  return `https://wa.me/${CONTACT.whatsappNumber}?text=${msg}`;
+}
+
+function instagramLink(product) {
+  // Instagram doesn't support pre-filled DM text via URL, so this opens
+  // the profile directly — the product name is included in the WhatsApp
+  // link instead, which does support pre-filled text.
+  return `https://instagram.com/${CONTACT.instagramHandle}`;
+}
+
+function renderCardImage(product) {
+  if (product.images && product.images.length > 0) {
+    return `<img src="${product.images[0]}" alt="${product.name}" class="w-full aspect-[4/5] object-cover" loading="lazy" />`;
+  }
+  return `<div class="placeholder-swatch w-full aspect-[4/5] flex items-center justify-center">
+            <span class="tracked-label text-cognac/60 text-center px-4">Photo Placeholder</span>
+          </div>`;
+}
+
+function renderCard(product, i) {
+  const card = document.createElement('article');
+  card.className = 'card-enter group cursor-pointer';
+  card.style.animationDelay = `${(i % 12) * 40}ms`;
+  card.innerHTML = `
+    <div class="overflow-hidden" data-open-lightbox data-sku="${product.sku}">
+      ${renderCardImage(product)}
+    </div>
+    <div class="pt-3 stitch">
+      <p class="tracked-label text-taupe pb-2">${product.category} &middot; ${product.material}</p>
+    </div>
+    <h3 class="font-display text-lg mt-2 leading-snug">${product.name}</h3>
+    <p class="text-sm text-ink/70 mt-1">${product.description}</p>
+    <p class="tracked-label text-taupe mt-2">Sizes: ${product.sizes.join(' / ')}</p>
+    <p class="font-display mt-1">${product.price}</p>
+    <div class="flex gap-3 mt-3">
+      <a href="${whatsappLink(product)}" target="_blank" rel="noopener"
+         class="tracked-label border border-ink px-4 py-2 hover:bg-ink hover:text-bone transition-colors text-center flex-1">
+        Inquire — WhatsApp
+      </a>
+      <a href="${instagramLink(product)}" target="_blank" rel="noopener"
+         class="tracked-label border border-hairline px-4 py-2 hover:border-ink transition-colors text-center flex-1">
+        Instagram
+      </a>
+    </div>
+  `;
+  card.querySelector('[data-open-lightbox]').addEventListener('click', () => openLightbox(product));
+  return card;
+}
+
+function renderJumpNav(sections) {
+  jumpNav.innerHTML = '';
+  if (sections.length <= 1) {
+    jumpNav.classList.add('hidden');
+    jumpNav.classList.remove('flex');
+    return;
+  }
+  jumpNav.classList.remove('hidden');
+  jumpNav.classList.add('flex');
+  sections.forEach(({ collection }) => {
+    const link = document.createElement('a');
+    link.href = `#${slugify(collection)}`;
+    link.textContent = collection;
+    link.className = 'hover:text-ink transition-colors underline decoration-hairline underline-offset-4';
+    jumpNav.appendChild(link);
+  });
+}
+
+function renderGrid() {
+  const filtered = PRODUCTS.filter(matchesFilters);
+  grid.innerHTML = '';
+
+  if (filtered.length === 0) {
+    emptyState.textContent = 'No products match your search.';
+    emptyState.classList.remove('hidden');
+    renderJumpNav([]);
+    return;
+  }
+  emptyState.classList.add('hidden');
+
+  const sections = groupByCollection(filtered);
+  renderJumpNav(sections);
+
+  let cardIndex = 0;
+  sections.forEach(({ collection, items }) => {
+    const section = document.createElement('section');
+    section.id = slugify(collection);
+
+    const header = document.createElement('div');
+    header.className = 'stitch pb-3 mb-8 flex items-baseline justify-between';
+    header.innerHTML = `
+      <h2 class="font-display text-2xl">${collection}</h2>
+      <span class="tracked-label text-taupe">${items.length} ${items.length === 1 ? 'piece' : 'pieces'}</span>
+    `;
+    section.appendChild(header);
+
+    const sectionGrid = document.createElement('div');
+    sectionGrid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12';
+    items.forEach(product => {
+      sectionGrid.appendChild(renderCard(product, cardIndex));
+      cardIndex++;
+    });
+    section.appendChild(sectionGrid);
+
+    grid.appendChild(section);
+  });
+}
+
+searchInput.addEventListener('input', (e) => {
+  activeSearch = e.target.value;
+  renderGrid();
+});
+
+/* ---- Lightbox ---- */
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightbox-img');
+const lightboxPlaceholder = document.getElementById('lightbox-placeholder');
+const lightboxCaption = document.getElementById('lightbox-caption');
+let currentProduct = null;
+let currentImageIndex = 0;
+
+function openLightbox(product) {
+  currentProduct = product;
+  currentImageIndex = 0;
+  renderLightboxImage();
+  lightbox.classList.remove('hidden');
+  lightbox.classList.add('flex');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  lightbox.classList.add('hidden');
+  lightbox.classList.remove('flex');
+  document.body.style.overflow = '';
+}
+
+function renderLightboxImage() {
+  const hasImages = currentProduct.images && currentProduct.images.length > 0;
+  if (hasImages) {
+    lightboxImg.src = currentProduct.images[currentImageIndex];
+    lightboxImg.alt = currentProduct.name;
+    lightboxImg.classList.remove('hidden');
+    lightboxPlaceholder.classList.add('hidden');
+  } else {
+    lightboxImg.classList.add('hidden');
+    lightboxPlaceholder.classList.remove('hidden');
+  }
+  const count = hasImages ? currentProduct.images.length : 1;
+  lightboxCaption.textContent = `${currentProduct.name} — ${currentImageIndex + 1} / ${count}`;
+}
+
+document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+document.getElementById('lightbox-prev').addEventListener('click', () => navigateLightbox(-1));
+document.getElementById('lightbox-next').addEventListener('click', () => navigateLightbox(1));
+lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
+
+function navigateLightbox(dir) {
+  if (!currentProduct.images || currentProduct.images.length === 0) return;
+  const len = currentProduct.images.length;
+  currentImageIndex = (currentImageIndex + dir + len) % len;
+  renderLightboxImage();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (lightbox.classList.contains('hidden')) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft') navigateLightbox(-1);
+  if (e.key === 'ArrowRight') navigateLightbox(1);
+});
+
+/* ---- Init ---- */
+buildTabs();
+renderGrid();
+</script>
+</body>
+</html>
